@@ -1,0 +1,107 @@
+Option Compare Database
+
+
+Private Sub browseFolder_Click()
+    Me.txtLocation = browseFile("frmMain", CurrentProject.Path, "*.xls")
+
+End Sub
+
+Private Sub rfsmStore_Click()
+
+Me.txtLocationFTE = browseFile("frmMain", CurrentProject.Path, "*.xls")
+
+End Sub
+
+Private Sub upload_Click()
+
+On Error GoTo errorHandler
+
+DoCmd.SetWarnings False
+
+If IsNull(Me.txtLocation) = True Or Me.txtLocation = "" Then
+MsgBox "Please choose a file to upload"
+Exit Sub
+End If
+
+
+If IsNull(Me.txtLocationFTE) = True Or Me.txtLocationFTE = "" Then
+MsgBox "Please choose BW file"
+Exit Sub
+End If
+
+'import RFSm table
+
+Dim xlapp As Excel.Application
+Dim xlworkbook As Excel.Workbook
+Dim xlworkbookFTE As Excel.Workbook
+
+
+
+Set xlapp = CreateObject("Excel.Application")
+Set xlworkbook = xlapp.Workbooks.Open(Me.txtLocation)
+Debug.Print txtLocationFTE
+Set xlworkbookFTE = xlapp.Workbooks.Open(Me.txtLocationFTE)
+
+xlapp.DisplayAlerts = True
+xlapp.Visible = True
+xlapp.ScreenUpdating = True
+
+Dim nRows As Long
+Dim imptRFSM As String
+
+
+With xlworkbook.Worksheets("tblRFSM")
+ nRows = Cells(Rows.Count, 7).End(xlUp).Row
+ imptRFSM = "G15:L" & nRows
+End With
+
+Dim nRows1 As Long
+Dim imptMerch As String
+
+ xlworkbookFTE.Worksheets("Data").Activate
+
+ nRows1 = Cells(Rows.Count, 7).End(xlUp).Row
+ Debug.Print nRows1
+ imptMerch = "A1:AE" & nRows1
+
+'With xlworkbookFTE.Worksheets()
+'
+'
+'End With
+
+DoCmd.RunSQL "DELETE * FROM tblTempImport"
+DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel9, "tblTempImport", Me.txtLocation, True, "imptRFSM"
+
+DoCmd.RunSQL "DELETE * FROM tblTempImport"
+DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel9, "tblTempMerch", Me.txtLocationFTE, True
+
+
+DoCmd.RunSQL "INSERT INTO tblCSFInvoices SELECT tblTempImport.* FROM tblTempImport;"
+DoCmd.RunSQL "SELECT tblTempImport.[RFSM (Key)], tblTempImport.RFSM, tblTempImport.[Customer Hierarchy 3], tblTempImport.storeName, tblTempImport.[Fiscal Year/Period], tblTempImport.[$] INTO tblRFSM" & _
+"FROM tblTempImport;"
+DoCmd.RunSQL "SELECT First(tblRFSMKey.[RFSM (Key)]) AS [RFSM (Key) Field], First(tblRFSMKey.[RFSM]) AS [RFSM Field], Count(tblRFSMKey.[RFSM (Key)]) AS NumberOfDups" & _
+"FROM tblRFSMKey" & _
+"GROUP BY tblRFSMKey.[RFSM (Key)], tblRFSMKey.[RFSM]" & _
+"HAVING (((Count(tblRFSMKey.[RFSM (Key)]))>1) And ((Count(tblRFSMKey.RFSM))>1));"
+
+'DoCmd.RunSQL "select * from tbltemptable"
+
+
+errorHandler:
+
+Select Case Err.Number
+Case 1004
+    Resume Next
+Case 3265
+    Resume Next
+Case Else
+    MsgBox Err.Description
+   ' Resume Exithere
+    Resume Next
+End Select
+
+
+
+
+
+End Sub

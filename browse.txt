@@ -1,0 +1,74 @@
+Option Compare Database
+
+Function isExcelRunning() As Boolean
+Dim xlapp As Excel.Application
+On Error Resume Next
+Set xlapp = GetObject(, "Excel.Application")
+isExcelRunning = (Err.Number = 0)
+Set xlapp = Nothing
+Err.Clear
+
+
+End Function
+
+
+Public Function browseFile(strFormName As String, strDir As String, filetype As String)
+Dim strFilter As String
+
+Dim cdl As CommonDlg
+Set cdl = New CommonDlg
+
+cdl.hwndOwner = Forms(strFormName).hwnd
+cdl.CancelError = True
+
+On Error GoTo HandleErrors
+
+cdl.InitDir = strDir
+cdl.FileName = ""
+cdl.DefaultExt = ""
+
+Select Case filetype
+    Case "mdb"
+        cdl.Filter = "Access files (*.mdb)|" & "*.mdb,*.mde"
+    Case "xls"
+        cdl.Filter = "Excel files (*.*)|" & "*.xls;*.xlsx;*.xlsb"
+    Case "doc"
+        cdl.Filter = "Word files (*.*)|" & "*.doc"
+    Case "Custom"
+        cdl.FileName = FileName
+    Case Else
+        cdl.Filter = "All files (*.*)|" & "*.*"
+End Select
+cdl.FilterIndex = 1
+cdl.OpenFlags = cdlOFNEnableHook Or cdlOFNNoChangeDir Or cdlOFNFileMustExist
+
+'cdl.CallBack = adhFnPtrToLong(AddressOf GFNCallback)
+
+cdl.ShowOpen
+
+txtFileOpen = cdl.FileName
+
+''If (cdl.OpenFlags And cdlOFNExtensionDifferent) <> 0 Then
+'    MsgBox "You choose a different extension!"
+'End If
+
+'MsgBox cdl.FileName
+browseFile = cdl.FileName
+'Forms("frmEmailMerge").Controls("txtAttachFile") = browsefile
+
+
+Exithere:
+    Set cdl = Nothing
+    Exit Function
+
+HandleErrors:
+    Select Case Err.Number
+        Case cdlCancel
+            Resume Exithere
+        Case Else
+            MsgBox "Error: " & Err.Description & _
+             "(" & Err.Number & ")"
+        End Select
+        Resume Exithere
+End Function
+
