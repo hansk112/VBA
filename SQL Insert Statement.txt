@@ -1,0 +1,3 @@
+INSERT INTO tblLNIDCData ( StoreID, StoreDescription, ProductCategory, Brand, monthText, ExtendedPrice )
+SELECT tblDTSDateConvert.[Customer Hierarchy 3], tblDTSDateConvert.CustomerName, tblLNIDCData.ProductCategory, tblDTSDateConvert.[Product Brand], tblDTSDateConvert.monthText, tblDTSDateConvert.[$]
+FROM tblDTSDateConvert, tblLNIDCData;
