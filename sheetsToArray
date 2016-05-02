@@ -1,0 +1,6 @@
+    Dim SNarray, i
+    ReDim SNarray(1 To Sheets.Count)
+    For i = 1 To Sheets.Count
+        SNarray(i) = ThisWorkbook.Sheets(i).Name
+Debug.Print SNarray(i)
+    Next
