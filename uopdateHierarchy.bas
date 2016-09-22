@@ -2,7 +2,7 @@ Attribute VB_Name = "Module1"
 Sub updateHierarchy()
 
 Dim hierachy As String
-
+Dim ws as Worksheet
 Dim wb As Workbook
 Dim cWB As ThisWorkbook, custWB As Workbook
 Dim nrowsR As Long, nrowsG As Long, nrowsCH As Long
