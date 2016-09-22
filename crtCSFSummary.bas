@@ -27,8 +27,8 @@ Application.DisplayAlerts = False
 
 'mth = InputBox("Enter month")
 
-
-mth = "21/02/2016 - 26/03/2016"
+'change date to current month
+mth = "31/07/2016 - 27/08/2016"
 
 Debug.Print arrStoreID(1, 1)
 
@@ -418,9 +418,21 @@ For k = 2 To lastrow
         
         Cells.Find(What:=homBrd).Activate
         rowhomBrd = ActiveCell.Offset(3, 0).Row
+        
+        ' handle rivermill
+        If ActiveSheet.Name = "PSWANGANUI" Then
+        
+        Cells.Find(What:=loafBrd).Activate
+        rowloafBrd = ActiveCell.Offset(8, 0).Row
 
+        ElseIf ActiveSheet.Name <> "PSWANGANUI" Then
+        
         Cells.Find(What:=loafBrd).Activate
         rowloafBrd = ActiveCell.Offset(7, 0).Row
+        
+        End If
+        
+
 
         Cells.Find(What:=occBBrd).Activate
         rowoccBBrd = ActiveCell.Offset(5, 0).Row
@@ -538,7 +550,9 @@ For k = 2 To lastrow
         
         ElseIf agmtType(i, 1) = "bake" And arrPayFreq(i, 1) = "Qtr" Then
         
-        If ActiveSheet.Name = "NWThorndonP" Then GoTo handleStore:
+        If ActiveSheet.Name = "NWThorndonP" Or ActiveSheet.Name = "bakeTemplate" Then GoTo handleStore:
+        'Or ActiveSheet.Name = "PSTauranga"
+        
         Cells.Find(What:=closBal).Activate
         bCSFRow = ActiveCell.Row
         
@@ -548,6 +562,7 @@ For k = 2 To lastrow
         mthCOl = ActiveCell.Column
 handleStore:
         'brand
+        
         Cells.Find(What:=loaBrdBake).Activate
         rowloaBrdBake = ActiveCell.Row
 
@@ -608,14 +623,22 @@ With ActiveSheet
     If .Range("B" & i) = "oneGF" Then
     .Range("AS" & i).Formula = "=-L" & i & "+U" & i & "+V" & i & "+W" & i & "+X" & i & "+Y" & i & "+Z" & i & "+AA" & i & "+AB" & i & "+AC" & i & "+AD" & i & "+AE" & i & "+AF" & i & "+AG" & i & "+AH" & i & "+AI" & i & "+AJ" & i & "+AK" & i & "+AL" & i & "+AM" & i
  '   .Range("AS" & i).Formula = "=-L2+U2+V2+W2+X2+Y2+Z2+AA2+AB2+AC2+AD2+AE2+AF2+AG2+AH2+AI2+AJ2+AK2+AL2+AM2"
-    ElseIf .Range("B" & i) = "bake" Then
+    ElseIf .Range("B" & i) = "bake" Or .Range("B" & i) = "chilled" Then
     .Range("AS" & i).Formula = "=-G" & i & "+U" & i & "+V" & i & "+W" & i
+    .Range("L" & i).Formula = "=G" & i & "+H" & i & "+I" & i & "+J" & i & "+K" & i & ""
     
     End If
-    .Calculate
-    Next i
+    
+'    ActiveWorkbook.Worksheets("csfSummary").AutoFilter.Sort.SortFields.Add Key:= _
+        Range("L1"), SortOn:=xlSortOnValues, Order:=xlDescending, DataOption:= _
+        xlSortNormal
     .Range("M2:T" & lrow).FillDown
     .Range("AO2:AR" & lrow).FillDown
+
+    .Calculate
+    Next i
+
+
     
     '=VLOOKUP($B$4,groceryRebate,groceryRebateCol,FALSE)
     '=VLOOKUP($B$4,cultSS,cultSSCol,0)
@@ -645,7 +668,37 @@ With ActiveSheet
     Range("AO1:AS1").Select
     Selection.Columns.Group
     
+    .Range("A1").Select
+    .Range(Selection, Selection.End(xlToRight)).Select
+    Selection.AutoFilter
+    .Range("A1").Select
+    ActiveSheet.AutoFilter.Sort.SortFields.Clear
+    ActiveSheet.AutoFilter.Sort.SortFields.Add Key:= _
+        Range("L1"), SortOn:=xlSortOnValues, Order:=xlDescending, DataOption:= _
+        xlSortNormal
+    With ActiveSheet.AutoFilter.Sort
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    ActiveSheet.AutoFilterMode = False
+    .Columns(1).Insert xlToRight
+    .Range("A1") = "RankByNIV"
+    .Range("A2").Formula = "=RANK(M2,$M$1:$M$" & lrow & ")"
+    .Range("A2:A" & lrow - 1).FillDown
+    .Columns(1).AutoFit
+    .Columns(21).AutoFit
+    .Calculate
 End With
 
 
+End Sub
+
+Sub ii()
+
+
+
+Range("A1").CurrentRegion.Select
 End Sub
